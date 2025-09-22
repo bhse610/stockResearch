@@ -4,7 +4,9 @@ import gradio as gr
 import os
 from openai import OpenAI
 from IPython.display import Markdown, display
-
+import streamlit as st
+import pandas as pd
+import numpy as np
 
 #input stock list
 inputFile = "data/input/stockList.json"
@@ -44,15 +46,13 @@ def processInputData(inDatas):
             pass#print(f"{key}: {value}")
     return outData
 
-def displayResult():
-    with gr.Blocks() as demo:
-        gr.Markdown("Stock Analysis Summary")
-        with gr.Row():
-            inputText = gr.Textbox(label="Input Stock Symbol", placeholder="Enter stock symbol here...")
-            outputText = gr.Textbox(label="Output Analysis Summary", placeholder="Analysis summary will be displayed here...")
-        analyzeButton = gr.Button("Analyze Stock")
-        analyzeButton.click(fn=processInputData, inputs=inputText, outputs=outputText)
-    demo.launch()
+def displayResult(outData):
+    data = pd.DataFrame(outData)
+    config = {
+        "Symbol": "Stock Symbol",
+        "PE": "Price to Earnings Ratio"
+    }
+    st.dataframe(data, column_config=config, use_container_width=True)
 
 def aiAgent():
     deepseek_api_key = os.getenv('DEEPSEEK_API_KEY')
@@ -70,3 +70,4 @@ if __name__ == "__main__":
     outputData = processInputData(jsonData)
     writeDataToJson(outputFile, outputData)
     print(Markdown(aiAgent()))    #displayResult()
+    displayResult(outputData)
