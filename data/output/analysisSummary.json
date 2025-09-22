@@ -1,16 +1,12 @@
 {
-    "IND": [
-        {
-            "Symbol": "INFY",
-            "PE": 22.835379
-        },
-        {
-            "Symbol": "TCS",
-            "PE": 23.26827
-        },
-        {
-            "Symbol": "HDFCBANK",
-            "PE": 22.128145
-        }
-    ]
-}
+    "Symbol": "INFY",
+    "PE": 22.18163
+},
+{
+    "Symbol": "TCS",
+    "PE": 22.568975
+},
+{
+    "Symbol": "HDFCBANK",
+    "PE": 22.1373
+},

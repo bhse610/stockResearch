@@ -19,24 +19,15 @@ def readDataFromJson(inFile):
         print("Error: Failed to decode JSON from the file.")
     return jsonInputData
 
-#write json
-def write_json(new_data, filename='data.json'):
-    with open(filename, 'r+') as file:
-        # Load existing data into a dictionary
-        file_data = json.load(file)
-        
-        # Append new data to the 'emp_details' list
-        file_data["IND"].append(new_data)
-        
-        # Move the cursor to the beginning of the file
-        file.seek(0)
-        
-        # Write the updated data back to the file
-        json.dump(file_data, file, indent=4)
+
 #write data to json file
 def writeDataToJson(outFile, outData):
-    for data in outData :
-        write_json(data,outFile)
+    with open(outFile, 'w+') as file:
+        for data in outData :
+            json_str = json.dumps(data, indent=4)
+            file.write(json_str)
+            file.write(",\n")
+    file.close()
 
 #process Input data
 def processInputData(inDatas):
