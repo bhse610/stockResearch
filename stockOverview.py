@@ -1,6 +1,10 @@
 import yfinance as yf
 import json
 import gradio as gr
+import os
+from openai import OpenAI
+from IPython.display import Markdown, display
+
 
 #input stock list
 inputFile = "data/input/stockList.json"
@@ -40,9 +44,29 @@ def processInputData(inDatas):
             pass#print(f"{key}: {value}")
     return outData
 
+def displayResult():
+    with gr.Blocks() as demo:
+        gr.Markdown("Stock Analysis Summary")
+        with gr.Row():
+            inputText = gr.Textbox(label="Input Stock Symbol", placeholder="Enter stock symbol here...")
+            outputText = gr.Textbox(label="Output Analysis Summary", placeholder="Analysis summary will be displayed here...")
+        analyzeButton = gr.Button("Analyze Stock")
+        analyzeButton.click(fn=processInputData, inputs=inputText, outputs=outputText)
+    demo.launch()
 
+def aiAgent():
+    deepseek_api_key = os.getenv('DEEPSEEK_API_KEY')
+    openai = OpenAI(api_key=deepseek_api_key, base_url="https://api.deepseek.com")
+    messages = [{"role": "user", "content": "How is TCS performing in the market?"}]
+    response = openai.chat.completions.create(
+    model="deepseek-chat",
+    messages=messages
+    )
+    print(response.choices[0].message.content)
+    return response.choices[0].message.content
 # main for function call.
 if __name__ == "__main__":
     jsonData = readDataFromJson(inputFile)
     outputData = processInputData(jsonData)
     writeDataToJson(outputFile, outputData)
+    print(Markdown(aiAgent()))    #displayResult()
