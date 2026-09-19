@@ -28,6 +28,12 @@ Login behaviour (env var KITE_SKIP_LOGIN):
     you press Enter (after completing the browser login). Set
     KITE_SKIP_LOGIN=1 to skip the interactive prompt (useful once the
     session is cached, or in non-interactive/CI runs).
+
+Skip-if-exists (env vars PORTFOLIO_EXCEL / KITE_FORCE_FETCH):
+    If the portfolio workbook (default: kite_portfolio.xlsx, override with
+    PORTFOLIO_EXCEL) already exists, the read_portfolio node SKIPS the fetch
+    entirely to avoid a slow, login-gated round trip. Set KITE_FORCE_FETCH=1
+    to always fetch regardless.
 """
 
 import os
@@ -66,6 +72,12 @@ KITE_SKIP_LOGIN = os.environ.get("KITE_SKIP_LOGIN", "").strip().lower() in ("1",
 # browser after the login URL is opened. The code polls get_profile until it
 # succeeds. Set to 0 to fall back to "press Enter" behaviour.
 KITE_LOGIN_TIMEOUT = int(os.environ.get("KITE_LOGIN_TIMEOUT", "300"))
+
+# Portfolio workbook produced by portfolio_to_excel.py. When this file already
+# exists, the agent skips the (slow, login-gated) fetch. Set KITE_FORCE_FETCH=1
+# to always fetch regardless.
+PORTFOLIO_EXCEL = os.environ.get("PORTFOLIO_EXCEL", "kite_portfolio.xlsx")
+KITE_FORCE_FETCH = os.environ.get("KITE_FORCE_FETCH", "").strip().lower() in ("1", "true", "yes")
 
 
 def _find_npx() -> Optional[str]:
@@ -159,6 +171,7 @@ class PortfolioState(TypedDict, total=False):
     """State passed between LangGraph nodes."""
     # Input
     prompt: str                 # what to ask the agent (defaults below)
+    excel_path: str             # portfolio workbook; if it exists, fetch is skipped
 
     # Output
     portfolio: str              # natural-language answer from DeepSeek
@@ -406,7 +419,24 @@ def read_portfolio(state: PortfolioState) -> PortfolioState:
 
     Populates `portfolio` (final answer) and `raw_tool_calls`.
     On failure, sets `error`.
+
+    Skips execution when the portfolio Excel workbook already exists (and
+    KITE_FORCE_FETCH is not set), since the data is already available and the
+    fetch is slow and requires an interactive Kite login.
     """
+    excel_path = state.get("excel_path") or PORTFOLIO_EXCEL
+    if not KITE_FORCE_FETCH and excel_path and os.path.isfile(excel_path):
+        logger.info("Portfolio workbook %r already exists - skipping fetch.", excel_path)
+        return {
+            **state,
+            "portfolio": (
+                f"Skipped: portfolio workbook '{excel_path}' already exists. "
+                "Set KITE_FORCE_FETCH=1 to re-fetch from Kite."
+            ),
+            "raw_tool_calls": [],
+            "error": None,
+        }
+
     prompt = state.get("prompt") or DEFAULT_PROMPT
     try:
         result = asyncio.run(_run_agent(prompt))

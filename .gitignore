@@ -1,0 +1,16 @@
+.venv/
+
+# Generated portfolio data (may contain personal financial details)
+kite_portfolio.xlsx
+kite_portfolio_raw.json
+
+# Generated quarterly analysis outputs
+quarterly_analysis.md
+quarterly_analysis.json
+
+# Source documents for analysis (may contain licensed filings)
+documents/**/*.pdf
+
+__pycache__/
+*.pyc
+

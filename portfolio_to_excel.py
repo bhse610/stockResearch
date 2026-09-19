@@ -12,6 +12,11 @@ Usage:
     python portfolio_to_excel.py --out my_portfolio.xlsx
     python portfolio_to_excel.py --skip-login        # reuse a live session
     python portfolio_to_excel.py --from-json data.json  # offline: no MCP
+    python portfolio_to_excel.py --refresh           # re-fetch even if file exists
+
+If the output Excel file already exists, the (slow, login-gated) Kite fetch
+is SKIPPED. Pass --refresh to force a fresh fetch, or --from-json to rebuild
+from a saved JSON file.
 
 Requires DEEPSEEK_API_KEY only when an LLM summary is requested; for the
 plain export no LLM is used.
@@ -78,6 +83,11 @@ def _parse_tool_result(raw: Any) -> Any:
         except json.JSONDecodeError:
             return stripped
     return text
+
+
+def excel_exists(path: str) -> bool:
+    """Return True if the portfolio workbook already exists."""
+    return os.path.isfile(path)
 
 
 async def fetch_portfolio(skip_login: bool = False) -> dict[str, Any]:
@@ -276,9 +286,18 @@ def main(argv: Optional[list[str]] = None) -> int:
                         help="Skip the login step (reuse a live session).")
     parser.add_argument("--from-json", help="Use a local JSON file instead of MCP.")
     parser.add_argument("--save-json", help="Also dump the raw portfolio data to this JSON file.")
+    parser.add_argument("--refresh", action="store_true",
+                        help="Re-fetch from Kite even if the Excel file already exists.")
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
+
+    # Skip the whole (slow, login-gated) fetch when the workbook already exists.
+    # Pass --refresh to force a re-fetch from Kite.
+    if not args.refresh and not args.from_json and excel_exists(args.out):
+        print(f"'{args.out}' already exists - skipping portfolio fetch.")
+        print("Use --refresh to re-fetch from Kite, or --from-json to rebuild from JSON.")
+        return 0
 
     if args.from_json:
         data = _load_from_json(args.from_json)

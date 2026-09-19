@@ -7,6 +7,12 @@ mcp>=1.0.0
 # Excel export (portfolio_to_excel.py)
 openpyxl>=3.1.0
 
+# PDF text extraction (extract_pdfs.py, quarterly_analysis_agent.py)
+pypdf>=4.0.0
+
+# Markdown -> HTML for the static site (site_builder.py)
+markdown>=3.5
+
 # Direct Kite Connect SDK (kite_portfolio_node.py, optional alternative to MCP)
 kiteconnect>=4.2.0
 
