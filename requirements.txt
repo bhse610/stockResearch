@@ -1,0 +1,12 @@
+langgraph>=0.2.0
+langchain-openai>=0.2.0
+langchain-mcp-adapters>=0.0.5
+langchain-core>=0.3.0
+mcp>=1.0.0
+
+# Excel export (portfolio_to_excel.py)
+openpyxl>=3.1.0
+
+# Direct Kite Connect SDK (kite_portfolio_node.py, optional alternative to MCP)
+kiteconnect>=4.2.0
+
